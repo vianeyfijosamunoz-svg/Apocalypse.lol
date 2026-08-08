@@ -1,22 +1,18 @@
 local Players = game:GetService("Players")
 local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
-local TweenService = game:GetService("TweenService")
 local CoreGui = game:GetService("CoreGui")
 local Lighting = game:GetService("Lighting")
-local HttpService = game:GetService("HttpService")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
 local CONFIG_FOLDER = "ApocalypseConfigs"
-local AUTOLOAD_FILE = "ApocalypseConfigs/autoload.txt"
 
 pcall(function()
 	if not isfolder(CONFIG_FOLDER) then makefolder(CONFIG_FOLDER) end
 end)
 
--- PANTALLA DE CARGA CON LINK DE DISCORD
 do
 	local loadGui = Instance.new("ScreenGui")
 	loadGui.Name = tostring(math.random(100000,999999))
@@ -107,143 +103,20 @@ do
 	loadGui:Destroy()
 end
 
--- SISTEMA DE KEY (KEY SYSTEM)
-local CorrectKey = "CC1-LQOEHQBENEPQSJWBSAKAKASB0QQNWA"
-local KeyVerified = false
-
-do
-	local keyGui = Instance.new("ScreenGui")
-	keyGui.Name = tostring(math.random(100000,999999))
-	keyGui.ResetOnSpawn = false
-	keyGui.IgnoreGuiInset = true
-	keyGui.DisplayOrder = 99999
-	pcall(function()
-		if gethui then keyGui.Parent = gethui() else keyGui.Parent = CoreGui end
-	end)
-	if not keyGui.Parent then keyGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
-
-	local bg = Instance.new("Frame")
-	bg.Size = UDim2.fromScale(1, 1)
-	bg.BackgroundColor3 = Color3.fromRGB(5, 5, 8)
-	bg.BorderSizePixel = 0
-	bg.Parent = keyGui
-
-	local mainBox = Instance.new("Frame")
-	mainBox.Size = UDim2.fromOffset(400, 260)
-	mainBox.Position = UDim2.fromScale(0.5, 0.5)
-	mainBox.AnchorPoint = Vector2.new(0.5, 0.5)
-	mainBox.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
-	mainBox.BorderSizePixel = 0
-	mainBox.Parent = bg
-	Instance.new("UICorner", mainBox).CornerRadius = UDim.new(0, 8)
-
-	local title = Instance.new("TextLabel")
-	title.Size = UDim2.new(1, 0, 0, 40)
-	title.Position = UDim2.new(0, 0, 0.05, 0)
-	title.BackgroundTransparency = 1
-	title.Text = "SEXUS HUB - KEY SYSTEM"
-	title.TextColor3 = Color3.fromRGB(255, 0, 18)
-	title.Font = Enum.Font.GothamBold
-	title.TextSize = 18
-	title.Parent = mainBox
-
-	local textBox = Instance.new("TextBox")
-	textBox.Size = UDim2.new(0.85, 0, 0, 40)
-	textBox.Position = UDim2.new(0.075, 0, 0.28, 0)
-	textBox.BackgroundColor3 = Color3.fromRGB(20, 20, 30)
-	textBox.TextColor3 = Color3.fromRGB(255, 255, 255)
-	textBox.PlaceholderText = "Ingresa tu llave aquí..."
-	textBox.PlaceholderColor3 = Color3.fromRGB(100, 100, 120)
-	textBox.Font = Enum.Font.Gotham
-	textBox.TextSize = 14
-	textBox.ClearTextOnFocus = false
-	textBox.Parent = mainBox
-	Instance.new("UICorner", textBox).CornerRadius = UDim.new(0, 6)
-
-	local verifyBtn = Instance.new("TextButton")
-	verifyBtn.Size = UDim2.new(0.41, 0, 0, 38)
-	verifyBtn.Position = UDim2.new(0.075, 0, 0.58, 0)
-	verifyBtn.BackgroundColor3 = Color3.fromRGB(255, 0, 18)
-	verifyBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-	verifyBtn.Text = "VERIFY KEY"
-	verifyBtn.Font = Enum.Font.GothamBold
-	verifyBtn.TextSize = 14
-	verifyBtn.Parent = mainBox
-	Instance.new("UICorner", verifyBtn).CornerRadius = UDim.new(0, 6)
-
-	local getBtn = Instance.new("TextButton")
-	getBtn.Size = UDim2.new(0.41, 0, 0, 38)
-	getBtn.Position = UDim2.new(0.515, 0, 0.58, 0)
-	getBtn.BackgroundColor3 = Color3.fromRGB(30, 30, 45)
-	getBtn.TextColor3 = Color3.fromRGB(255, 255, 255)
-	getBtn.Text = "GET KEY"
-	getBtn.Font = Enum.Font.GothamBold
-	getBtn.TextSize = 14
-	getBtn.Parent = mainBox
-	Instance.new("UICorner", getBtn).CornerRadius = UDim.new(0, 6)
-
-	local feedback = Instance.new("TextLabel")
-	feedback.Size = UDim2.new(1, 0, 0, 25)
-	feedback.Position = UDim2.new(0, 0, 0.78, 0)
-	feedback.BackgroundTransparency = 1
-	feedback.Text = ""
-	feedback.TextColor3 = Color3.fromRGB(255, 255, 255)
-	feedback.Font = Enum.Font.GothamBold
-	feedback.TextSize = 13
-	feedback.Parent = mainBox
-
-	getBtn.MouseButton1Click:Connect(function()
-		pcall(function()
-			setclipboard("discord.gg/tvYWHS2B8")
-		end)
-		feedback.TextColor3 = Color3.fromRGB(0, 240, 110)
-		feedback.Text = "¡Link copiado al portapapeles!"
-	end)
-
-	verifyBtn.MouseButton1Click:Connect(function()
-		feedback.TextColor3 = Color3.fromRGB(240, 240, 255)
-		feedback.Text = "VALIDANDO..."
-		task.wait(0.6)
-		if textBox.Text == CorrectKey then
-			feedback.TextColor3 = Color3.fromRGB(0, 240, 110)
-			feedback.Text = "VALID KEY DISFRUTA"
-			task.wait(1)
-			KeyVerified = true
-			keyGui:Destroy()
-		else
-			feedback.TextColor3 = Color3.fromRGB(255, 0, 18)
-			feedback.Text = "PRUEBA DE NUEVO PORFA VOR"
-		end
-	end)
-
-	repeat task.wait() until KeyVerified
-end
-
-local CurrentVersion = "v3 OMEGA"
-local HubTitle = "SEXUS HUB"
-
 local Config = {
-	Aimbot = false,
-	AimbotHold = false,
 	Ragebot = false,
 	TeleportRage = true,
-	TeleportInterval = 0,
 	TeleportOffsetY = 8,
 	TeleportOffsetX = 0,
 	TeleportOffsetZ = 3,
-	RageMode = 10,
 	NoSpread = true,
 	NoRecoil = true,
 	RapidFire = true,
 	InfiniteAmmo = true,
 	AutoReload = true,
 	ExtendedRange = true,
-	AntiAimbot = false,
 	AimPartDynamic = true,
 	FOV = 30000,
-	Smoothness = 0,
-	Prediction = 0,
-	AutoPrediction = false,
 	TeamCheck = true,
 	VisibleCheck = false,
 	ShowTargetLine = true,
@@ -264,29 +137,20 @@ local Config = {
 	ESPDistance = true,
 	ESPHealth = true,
 	ESPTeamColor = true,
-	Chams = false,
 	FOVCircle = true,
 	Crosshair = false,
 	CrosshairSize = 30,
-	NoHands = false,
+	CrosshairSpeed = 2.2,
+	CrosshairGap = 0.62,
 	
 	AntiDetection = true,
-	FPSBoost = false,
 	SkyEnabled = false,
 	SkyR = 0, SkyG = 0, SkyB = 0,
-	
-	UIKey = Enum.KeyCode.RightShift,
-	AimKey = Enum.KeyCode.E,
-	RageKey = Enum.KeyCode.R,
-	FlyKey = Enum.KeyCode.F,
-	ESPKey = Enum.KeyCode.V,
-	NoclipKey = Enum.KeyCode.N,
 }
 
 local Connections = {}
 local ESPObjects = {}
 local HealthCache = {}
-local Aiming = false
 local Flying = false
 local Noclipping = false
 local OriginalWalkSpeed = 16
@@ -298,21 +162,17 @@ local NearestEnemy = nil
 local RainbowHue = 0
 local CrossAngle = 0
 local fpsFrames, fpsLast, CurrentFPS = 0, tick(), 60
-local StartTime = tick()
-local SelectedConfig = nil
-local HandsHidden = false
 
--- CARGAR RAYFIELD UI
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-	Name = "Sexus Hub",
-	LoadingTitle = "SEXUS HUB OMEGA",
+	Name = "APOCALYPSE.LOL",
+	LoadingTitle = "APOCALYPSE.LOL OMEGA",
 	LoadingSubtitle = "by Apocalypse.lol",
 	ConfigurationSaving = {
 		Enabled = true,
 		FolderName = CONFIG_FOLDER,
-		FileName = "SexusHubConfig"
+		FileName = "APOCALYPSEConfig"
 	},
 	Discord = {
 		Enabled = false,
@@ -322,12 +182,10 @@ local Window = Rayfield:CreateWindow({
 	KeySystem = false,
 })
 
--- NUEVAS SECCIONES APARECIENDO ARRIBA
 local MainTab = Window:CreateTab("Combate", 401)
 local MoveTab = Window:CreateTab("Movimiento", 402)
 local ESPTab = Window:CreateTab("ESP", 403)
 local MiscTab = Window:CreateTab("Misc", 404)
-local SettingsTab = Window:CreateTab("Settings", 405)
 
 local function ProtectInstance(obj)
 	pcall(function()
@@ -345,7 +203,7 @@ end
 
 local function Notify(text, t)
 	Rayfield:Notify({
-		Title = "Sexus Hub",
+		Title = "APOCALYPSE.LOL",
 		Content = text,
 		Duration = t or 1.5,
 		Image = 4483362458,
@@ -367,9 +225,6 @@ local function IsEnemy(plr)
 	if not plr.Team or not LocalPlayer.Team then return true end
 	return plr.Team ~= LocalPlayer.Team
 end
-
-local RaycastParamsCache = RaycastParams.new()
-RaycastParamsCache.FilterType = Enum.RaycastFilterType.Exclude
 
 local function GetAimPart(char)
 	local head = char:FindFirstChild("Head")
@@ -396,7 +251,7 @@ local function GetBestTargetRage()
 			if char and hrp and hum and hum.Health > 0 then
 				local part = GetAimPart(char)
 				if part then
-					local sp, onScreen = Camera:WorldToViewportPoint(part.Position)
+					local sp = Camera:WorldToViewportPoint(part.Position)
 					local dist3D = (hrp.Position - myPos).Magnitude
 					if dist3D <= 99999 then
 						local dist2D = (Vector2.new(sp.X, sp.Y) - center).Magnitude
@@ -406,30 +261,6 @@ local function GetBestTargetRage()
 							bestPlr = plr
 							bestPart = part
 						end
-					end
-				end
-			end
-		end
-	end
-	return bestPlr, bestPart
-end
-
-local function GetBestTargetLegit()
-	local bestPlr, bestPart, bestDist = nil, nil, Config.FOV
-	local center = Vector2.new(Camera.ViewportSize.X * 0.5, Camera.ViewportSize.Y * 0.5)
-	for _, plr in ipairs(Players:GetPlayers()) do
-		if plr ~= LocalPlayer and IsEnemy(plr) then
-			local char, hrp, hum = GetChar(plr)
-			if char and hrp and hum and hum.Health > 0 then
-				local part = GetAimPart(char)
-				if not part then continue end
-				local sp, onScreen = Camera:WorldToViewportPoint(part.Position)
-				if onScreen then
-					local dist2D = (Vector2.new(sp.X, sp.Y) - center).Magnitude
-					if dist2D < bestDist then
-						bestDist = dist2D
-						bestPlr = plr
-						bestPart = part
 					end
 				end
 			end
@@ -602,59 +433,10 @@ local function UpdateESP()
 	end
 end
 
-local function ApplyNoHands()
-	local char = LocalPlayer.Character
-	if not char then return end
-	local isFirstPerson = false
-	local head = char:FindFirstChild("Head")
-	if head then
-		isFirstPerson = (Camera.CFrame.Position - head.Position).Magnitude < 1.2
-	end
-
-	if Config.NoHands and isFirstPerson then
-		for _, part in ipairs(char:GetDescendants()) do
-			if part:IsA("BasePart") then
-				local n = part.Name:lower()
-				if n:find("arm") or n:find("hand") or n:find("brazo") or n:find("mano") then
-					part.LocalTransparencyModifier = 1
-				end
-			end
-		end
-		HandsHidden = true
-	elseif HandsHidden then
-		for _, part in ipairs(char:GetDescendants()) do
-			if part:IsA("BasePart") then
-				local n = part.Name:lower()
-				if n:find("arm") or n:find("hand") or n:find("brazo") or n:find("mano") then
-					part.LocalTransparencyModifier = 0
-				end
-			end
-		end
-		HandsHidden = false
-	end
-end
-
-local function ApplyFPS(state)
-	pcall(function()
-		if state then
-			settings().Rendering.QualityLevel = Enum.QualityLevel.Level01
-			Lighting.GlobalShadows = false
-			Lighting.FogEnd = 9e9
-			for _, v in ipairs(Lighting:GetChildren()) do
-				if v:IsA("PostEffect") then v.Enabled = false end
-			end
-		else
-			settings().Rendering.QualityLevel = Enum.QualityLevel.Automatic
-			Lighting.GlobalShadows = true
-		end
-	end)
-end
-
--- SECCIÓN COMBATE (MAIN)
-local CombatSection = MainTab:CreateSection("COMBATE - RAJEBOT BRUTAL OMEGA")
+MainTab:CreateSection("COMBATE - RAJEBOT BRUTAL OMEGA")
 
 MainTab:CreateToggle({
-	Name = "RajeBot Hiper-Agresivo Brutal",
+	Name = "Enabled",
 	CurrentValue = Config.Ragebot,
 	Flag = "Ragebot",
 	Callback = function(Value)
@@ -663,7 +445,7 @@ MainTab:CreateToggle({
 })
 
 MainTab:CreateToggle({
-	Name = "Teleport Instantáneo (Omega)",
+	Name = "Ragebot",
 	CurrentValue = Config.TeleportRage,
 	Flag = "TeleportRage",
 	Callback = function(Value)
@@ -742,34 +524,23 @@ MainTab:CreateSlider({
 	end,
 })
 
-MainTab:CreateSection("COMBATE - APUNTADO LEGIT")
+MainTab:CreateSection("COMBATE - SCRIPTS EXTERNOS")
 
-MainTab:CreateToggle({
+MainTab:CreateButton({
 	Name = "Aimbot",
-	CurrentValue = Config.Aimbot,
-	Flag = "Aimbot",
-	Callback = function(Value)
-		Config.Aimbot = Value
+	Callback = function()
+		pcall(function()
+			loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Good-Aimbot-Mobile-122484"))()
+		end)
 	end,
 })
 
-MainTab:CreateToggle({
-	Name = "Hold to Aim",
-	CurrentValue = Config.AimbotHold,
-	Flag = "AimbotHold",
-	Callback = function(Value)
-		Config.AimbotHold = Value
-	end,
-})
-
-MainTab:CreateSlider({
-	Name = "Smoothness",
-	Range = {0, 35},
-	Increment = 1,
-	CurrentValue = Config.Smoothness,
-	Flag = "Smoothness",
-	Callback = function(Value)
-		Config.Smoothness = Value
+MainTab:CreateButton({
+	Name = "SkinChanger",
+	Callback = function()
+		pcall(function()
+			loadstring(game:HttpGet("https://rawscripts.net/raw/RIVALS-FREE-Roblox-Skin-Changer-Script-keyless-2026-208386"))()
+		end)
 	end,
 })
 
@@ -858,7 +629,6 @@ MainTab:CreateToggle({
 	end,
 })
 
--- SECCIÓN MOVIMIENTO
 MoveTab:CreateSection("MOVIMIENTO")
 
 MoveTab:CreateToggle({
@@ -939,7 +709,6 @@ MoveTab:CreateSlider({
 	end,
 })
 
--- SECCIÓN ESP
 ESPTab:CreateSection("ESP / VISUALS")
 
 ESPTab:CreateToggle({
@@ -1005,15 +774,6 @@ ESPTab:CreateToggle({
 	end,
 })
 
-ESPTab:CreateToggle({
-	Name = "No Hands / No Manos",
-	CurrentValue = Config.NoHands,
-	Flag = "NoHands",
-	Callback = function(Value)
-		Config.NoHands = Value
-	end,
-})
-
 ESPTab:CreateSlider({
 	Name = "Crosshair Size",
 	Range = {10, 50},
@@ -1025,7 +785,28 @@ ESPTab:CreateSlider({
 	end,
 })
 
--- SECCIÓN MISC
+ESPTab:CreateSlider({
+	Name = "Crosshair Speed",
+	Range = {0.1, 10},
+	Increment = 0.1,
+	CurrentValue = Config.CrosshairSpeed,
+	Flag = "CrosshairSpeed",
+	Callback = function(Value)
+		Config.CrosshairSpeed = Value
+	end,
+})
+
+ESPTab:CreateSlider({
+	Name = "Crosshair Gap (Separación)",
+	Range = {0.1, 2.0},
+	Increment = 0.05,
+	CurrentValue = Config.CrosshairGap,
+	Flag = "CrosshairGap",
+	Callback = function(Value)
+		Config.CrosshairGap = Value
+	end,
+})
+
 MiscTab:CreateSection("MISC")
 
 MiscTab:CreateToggle({
@@ -1034,16 +815,6 @@ MiscTab:CreateToggle({
 	Flag = "AntiDetection",
 	Callback = function(Value)
 		Config.AntiDetection = Value
-	end,
-})
-
-MiscTab:CreateToggle({
-	Name = "FPS Boost",
-	CurrentValue = Config.FPSBoost,
-	Flag = "FPSBoost",
-	Callback = function(Value)
-		Config.FPSBoost = Value
-		ApplyFPS(Value)
 	end,
 })
 
@@ -1087,14 +858,6 @@ MiscTab:CreateSlider({
 	Callback = function(Value)
 		Config.SkyB = Value
 	end,
-})
-
--- SECCIÓN SETTINGS
-SettingsTab:CreateSection("CONTROLES")
-
-SettingsTab:CreateParagraph({
-	Title = "Atajos de Teclado",
-	Content = "• RightShift → Toggle UI\n• E → Aimbot Hold\n• R → RajeBot Brutal Instantáneo\n• F → Fly\n• V → ESP\n• N → Noclip"
 })
 
 local FOVCircle = Drawing and Drawing.new("Circle")
@@ -1150,7 +913,28 @@ for i = 1, 4 do
 	UILines[i] = line
 end
 
--- TEXTO BAJO EL CROSSHAIR CUANDO EL RAGEBOT ESTÁ ACTIVO
+local WatermarkGui = Instance.new("ScreenGui")
+WatermarkGui.Name = "WatermarkGui"
+WatermarkGui.ResetOnSpawn = false
+WatermarkGui.IgnoreGuiInset = true
+ProtectInstance(WatermarkGui)
+pcall(function()
+	if gethui then WatermarkGui.Parent = gethui() else WatermarkGui.Parent = CoreGui end
+end)
+if not WatermarkGui.Parent then WatermarkGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
+
+local WatermarkLabel = Instance.new("TextLabel")
+WatermarkLabel.Size = UDim2.new(0, 360, 0, 25)
+WatermarkLabel.Position = UDim2.new(0, 10, 0, 75)
+WatermarkLabel.BackgroundTransparency = 0.2
+WatermarkLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
+WatermarkLabel.TextColor3 = Color3.fromRGB(255, 0, 18)
+WatermarkLabel.Font = Enum.Font.GothamBold
+WatermarkLabel.TextSize = 12
+WatermarkLabel.TextStrokeTransparency = 0.3
+WatermarkLabel.Parent = WatermarkGui
+Instance.new("UICorner", WatermarkLabel).CornerRadius = UDim.new(0, 4)
+
 local RageStatusGui = Instance.new("ScreenGui")
 RageStatusGui.Name = "RageStatus"
 RageStatusGui.ResetOnSpawn = false
@@ -1182,6 +966,8 @@ Connections[#Connections+1] = RunService.RenderStepped:Connect(function(dt)
 
 	RainbowHue = (RainbowHue + dt * 0.9) % 1
 	local rainbowColor = Color3.fromHSV(RainbowHue, 1, 1)
+
+	WatermarkLabel.Text = "PUBLIC BETA BUILD | " .. LocalPlayer.Name .. " | APOCALYPSE.LOL | " .. CurrentFPS .. " FPS"
 
 	if Config.Ragebot and CurrentTarget then
 		RageStatusLabel.Visible = true
@@ -1248,24 +1034,21 @@ Connections[#Connections+1] = RunService.RenderStepped:Connect(function(dt)
 	if Config.Crosshair then
 		CrossCenter.Visible = true
 		local s = Config.CrosshairSize
-		CrossAngle += 7 * dt * 2.2
+		CrossAngle += 7 * dt * Config.CrosshairSpeed
 		local angles = {CrossAngle, CrossAngle + 1.5708, CrossAngle + 3.1416, CrossAngle + 4.7124}
 		for i = 1, 4 do
 			local a = angles[i]
 			local line = UILines[i]
 			line.Size = UDim2.fromOffset(s * 0.4, 2)
 			line.BackgroundColor3 = rainbowColor
-			line.Position = UDim2.fromOffset(math.cos(a) * (s * 0.62), math.sin(a) * (s * 0.62))
+			line.Position = UDim2.fromOffset(math.cos(a) * (s * Config.CrosshairGap), math.sin(a) * (s * Config.CrosshairGap))
 			line.Rotation = math.deg(a)
 		end
 	else
 		CrossCenter.Visible = false
 	end
-
-	ApplyNoHands()
 end)
 
--- BUCLE DE RAJEBOT HIPER-BRUTAL
 Connections[#Connections+1] = RunService.Heartbeat:Connect(function()
 	if not Loaded then return end
 	local char, hrp, hum = GetChar()
@@ -1296,26 +1079,17 @@ Connections[#Connections+1] = RunService.Heartbeat:Connect(function()
 				if Config.TeleportRage and hrp then
 					local enemyCFrame = eHrp.CFrame
 					local offsetPos = enemyCFrame.Position 
-						+ (enemyCFrame.LookVector * Config.TeleportOffsetZ) 
-						+ (enemyCFrame.RightVector * Config.TeleportOffsetX) 
+						- (enemyCFrame.LookVector * Config.TeleportOffsetZ) 
+						- (enemyCFrame.RightVector * Config.TeleportOffsetX) 
 						+ Vector3.new(0, Config.TeleportOffsetY, 0)
-					hrp.CFrame = CFrame.new(offsetPos, enemyCFrame.Position)
+					hrp.CFrame = CFrame.new(offsetPos, eHrp.Position)
 				end
 			end
 		else
 			CurrentTarget = nil
 		end
 	else
-		local shouldAim = Config.Aimbot and (not Config.AimbotHold or Aiming)
-		if shouldAim then
-			local plr, part = GetBestTargetLegit()
-			CurrentTarget = plr
-			if plr and part then
-				Camera.CFrame = CFrame.lookAt(Camera.CFrame.Position, part.Position)
-			end
-		else
-			CurrentTarget = nil
-		end
+		CurrentTarget = nil
 	end
 
 	if Config.Fly then
@@ -1415,18 +1189,13 @@ end)
 
 UserInputService.InputBegan:Connect(function(input, gp)
 	if gp then return end
-	if input.KeyCode == Config.AimKey then Aiming = true
-	elseif input.KeyCode == Config.RageKey then
+	if input.KeyCode == Enum.KeyCode.R then
 		Config.Ragebot = not Config.Ragebot
 		Notify("RajeBot Hiper-Brutal " .. (Config.Ragebot and "ON" or "OFF"))
-	elseif input.KeyCode == Config.FlyKey then Config.Fly = not Config.Fly
-	elseif input.KeyCode == Config.ESPKey then Config.ESP = not Config.ESP
-	elseif input.KeyCode == Config.NoclipKey then Config.Noclip = not Config.Noclip
+	elseif input.KeyCode == Enum.KeyCode.F then Config.Fly = not Config.Fly
+	elseif input.KeyCode == Enum.KeyCode.V then Config.ESP = not Config.ESP
+	elseif input.KeyCode == Enum.KeyCode.N then Config.Noclip = not Config.Noclip
 	end
-end)
-
-UserInputService.InputEnded:Connect(function(input)
-	if input.KeyCode == Config.AimKey then Aiming = false end
 end)
 
 local function OnChar(char)
@@ -1444,7 +1213,6 @@ local function OnChar(char)
 		Flying = false
 	end
 	Noclipping = false
-	HandsHidden = false
 	CurrentTarget = nil
 end
 
@@ -1459,5 +1227,5 @@ end)
 Loaded = true
 
 Rayfield:LoadConfiguration()
-Notify("SEXUS HUB OMEGA // RAYFIELD INTERFACE LOADED", 1.5)
+Notify("APOCALYPSE.LOL // RAYFIELD INTERFACE LOADED", 1.5)
 
