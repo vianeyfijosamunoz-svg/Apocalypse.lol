@@ -3,15 +3,43 @@ local RunService = game:GetService("RunService")
 local UserInputService = game:GetService("UserInputService")
 local CoreGui = game:GetService("CoreGui")
 local Lighting = game:GetService("Lighting")
+local HttpService = game:GetService("HttpService")
 
 local LocalPlayer = Players.LocalPlayer
 local Camera = workspace.CurrentCamera
 
 local CONFIG_FOLDER = "ApocalypseConfigs"
+local AUTOLOAD_FILE = CONFIG_FOLDER .. "/autoload.json"
 
 pcall(function()
 	if not isfolder(CONFIG_FOLDER) then makefolder(CONFIG_FOLDER) end
 end)
+
+local function GetAutoloadConfig()
+	local success, result = pcall(function()
+		if isfile(AUTOLOAD_FILE) then
+			return HttpService:JSONDecode(readfile(AUTOLOAD_FILE))
+		end
+	end)
+	if success and type(result) == "table" then
+		return result.Name
+	end
+	return nil
+end
+
+local function SaveAutoloadConfig(name)
+	pcall(function()
+		writefile(AUTOLOAD_FILE, HttpService:JSONEncode({Name = name}))
+	end)
+end
+
+local function ClearAutoloadConfig()
+	pcall(function()
+		if isfile(AUTOLOAD_FILE) then
+			delfile(AUTOLOAD_FILE)
+		end
+	end)
+end
 
 do
 	local loadGui = Instance.new("ScreenGui")
@@ -34,7 +62,7 @@ do
 	title.Size = UDim2.new(1, 0, 0, 50)
 	title.Position = UDim2.new(0, 0, 0.35, 0)
 	title.BackgroundTransparency = 1
-	title.Text = "APOCALYPSE.LOL"
+	title.Text = "Apocalypse.lol"
 	title.TextColor3 = Color3.fromRGB(255, 0, 18)
 	title.Font = Enum.Font.GothamBold
 	title.TextSize = 34
@@ -54,7 +82,7 @@ do
 	status.Size = UDim2.new(1, 0, 0, 28)
 	status.Position = UDim2.new(0, 0, 0.49, 0)
 	status.BackgroundTransparency = 1
-	status.Text = "Cargando APOCALYPSE.LOL // RajeBot Brutal & Instantáneo..."
+	status.Text = "Cargando Apocalypse.lol..."
 	status.TextColor3 = Color3.fromRGB(240, 240, 255)
 	status.Font = Enum.Font.Gotham
 	status.TextSize = 15
@@ -87,17 +115,11 @@ do
 
 	local startTime = tick()
 	local duration = 0.3
-	local dots, lastDot = 0, 0
 
 	while tick() - startTime < duration do
 		local progress = math.clamp((tick() - startTime) / duration, 0, 1)
 		barFill.Size = UDim2.new(progress, 0, 1, 0)
 		percent.Text = math.floor(progress * 100) .. "%"
-		if tick() - lastDot > 0.08 then
-			dots = (dots + 1) % 4
-			status.Text = "Cargando RajeBot Brutal" .. string.rep(".", dots)
-			lastDot = tick()
-		end
 		task.wait()
 	end
 	loadGui:Destroy()
@@ -106,9 +128,13 @@ end
 local Config = {
 	Ragebot = false,
 	TeleportRage = true,
+	FFAMode = false,
 	TeleportOffsetY = 8,
 	TeleportOffsetX = 0,
 	TeleportOffsetZ = 3,
+	Prediction = true,
+	PredictionFactor = 0.12,
+	TargetPriority = "Distancia",
 	NoSpread = true,
 	NoRecoil = true,
 	RapidFire = true,
@@ -116,12 +142,15 @@ local Config = {
 	AutoReload = true,
 	ExtendedRange = true,
 	AimPartDynamic = true,
-	FOV = 30000,
+	FOV = 50000,
 	TeamCheck = true,
 	VisibleCheck = false,
 	ShowTargetLine = true,
 	NearestLine = true,
 	HitNotify = true,
+	
+	AntiKatana = false,
+	AntiShield = false,
 	
 	Speed = false,
 	SpeedValue = 140,
@@ -143,7 +172,7 @@ local Config = {
 	CrosshairSpeed = 2.2,
 	CrosshairGap = 0.62,
 	
-	AntiDetection = true,
+	AntiDetection = false,
 	SkyEnabled = false,
 	SkyR = 0, SkyG = 0, SkyB = 0,
 }
@@ -166,9 +195,9 @@ local fpsFrames, fpsLast, CurrentFPS = 0, tick(), 60
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-	Name = "APOCALYPSE.LOL",
-	LoadingTitle = "APOCALYPSE.LOL OMEGA",
-	LoadingSubtitle = "by Apocalypse.lol",
+	Name = "Apocalypse.lol",
+	LoadingTitle = "Apocalypse.lol",
+	LoadingSubtitle = "Apocalypse.lol",
 	ConfigurationSaving = {
 		Enabled = true,
 		FolderName = CONFIG_FOLDER,
@@ -186,6 +215,7 @@ local MainTab = Window:CreateTab("Combate", 401)
 local MoveTab = Window:CreateTab("Movimiento", 402)
 local ESPTab = Window:CreateTab("ESP", 403)
 local MiscTab = Window:CreateTab("Misc", 404)
+local SettingsTab = Window:CreateTab("Settings", 405)
 
 local function ProtectInstance(obj)
 	pcall(function()
@@ -197,13 +227,9 @@ local function ProtectInstance(obj)
 	end)
 end
 
-local function SafeRandom(min, max)
-	return min + (math.random() * (max - min))
-end
-
 local function Notify(text, t)
 	Rayfield:Notify({
-		Title = "APOCALYPSE.LOL",
+		Title = "Apocalypse.lol",
 		Content = text,
 		Duration = t or 1.5,
 		Image = 4483362458,
@@ -220,10 +246,93 @@ local function GetChar(plr)
 	if hrp and hum and hum.Health > 0 then return c, hrp, hum, head end
 end
 
-local function IsEnemy(plr)
+local function HasProfileDisplay(char)
+	if not char then return false end
+	for _, desc in ipairs(char:GetDescendants()) do
+		if desc:IsA("BillboardGui") or desc:IsA("ImageLabel") or desc:IsA("ImageButton") then
+			if desc.Name ~= "E" then
+				return true
+			end
+		end
+	end
+	local head = char:FindFirstChild("Head")
+	if head then
+		for _, child in ipairs(head:GetChildren()) do
+			if child:IsA("BillboardGui") or child:IsA("SurfaceGui") then
+				return true
+			end
+		end
+	end
+	return false
+end
+
+local function CanTeleportTo(plr)
+	if plr == LocalPlayer then return false end
+	local char = plr.Character
+	if char and HasProfileDisplay(char) then
+		return false
+	end
+
+	if Config.FFAMode then return true end
 	if not Config.TeamCheck then return true end
-	if not plr.Team or not LocalPlayer.Team then return true end
-	return plr.Team ~= LocalPlayer.Team
+	
+	local myTeam = LocalPlayer.Team
+	local targetTeam = plr.Team
+	if not myTeam or not targetTeam then return true end
+
+	local myColor = myTeam.TeamColor and myTeam.TeamColor.Name or ""
+	local targetColor = targetTeam.TeamColor and targetTeam.TeamColor.Name or ""
+	local myName = string.lower(myTeam.Name)
+	local targetName = string.lower(targetTeam.Name)
+
+	local isMyPurple = myColor:find("Purple") or myColor:find("Violet") or myName:find("morado") or myName:find("purple")
+	local isMyYellow = myColor:find("Yellow") or myColor:find("amarillo") or myName:find("yellow")
+
+	local isTargetPurple = targetColor:find("Purple") or targetColor:find("Violet") or targetName:find("morado") or targetName:find("purple")
+	local isTargetYellow = targetColor:find("Yellow") or targetColor:find("amarillo") or targetName:find("yellow")
+
+	if isMyPurple and isTargetYellow then return true end
+	if isMyYellow and isTargetPurple then return true end
+
+	if not (isMyPurple or isMyYellow) then
+		return myTeam ~= targetTeam
+	end
+
+	return false
+end
+
+local function AI_DetectThreat(char)
+	if not char then return false, false end
+	
+	local hasKatana = false
+	local hasShield = false
+	
+	for _, item in ipairs(char:GetChildren()) do
+		if item:IsA("Tool") or item:IsA("Model") then
+			local name = string.lower(item.Name)
+			if name:find("katana") or name:find("sword") or name:find("blade") or name:find("cuchillo") then
+				hasKatana = true
+			end
+			if name:find("shield") or name:find("escudo") or name:find("riot") or name:find("barrier") then
+				hasShield = true
+			end
+		end
+	end
+	
+	local humanoid = char:FindFirstChildOfClass("Humanoid")
+	if humanoid then
+		for _, anim in ipairs(humanoid:GetPlayingAnimationTracks()) do
+			local animName = string.lower(anim.Animation.AnimationId or "")
+			if animName:find("katana") or animName:find("sword") then
+				hasKatana = true
+			end
+			if animName:find("shield") or animName:find("escudo") then
+				hasShield = true
+			end
+		end
+	end
+	
+	return hasKatana, hasShield
 end
 
 local function GetAimPart(char)
@@ -246,16 +355,30 @@ local function GetBestTargetRage()
 	local myPos = myHRP.Position
 
 	for _, plr in ipairs(Players:GetPlayers()) do
-		if plr ~= LocalPlayer and IsEnemy(plr) then
+		if CanTeleportTo(plr) then
 			local char, hrp, hum = GetChar(plr)
 			if char and hrp and hum and hum.Health > 0 then
-				local part = GetAimPart(char)
-				if part then
-					local sp = Camera:WorldToViewportPoint(part.Position)
-					local dist3D = (hrp.Position - myPos).Magnitude
-					if dist3D <= 99999 then
+				local kDetect, sDetect = AI_DetectThreat(char)
+				local blockedByThreat = false
+				if Config.AntiKatana and kDetect then blockedByThreat = true end
+				if Config.AntiShield and sDetect then blockedByThreat = true end
+				
+				if not blockedByThreat then
+					local part = GetAimPart(char)
+					if part then
+						local sp = Camera:WorldToViewportPoint(part.Position)
+						local dist3D = (hrp.Position - myPos).Magnitude
 						local dist2D = (Vector2.new(sp.X, sp.Y) - center).Magnitude
-						local score = 5000000 - (dist3D * 1.0) - (dist2D * 0.05)
+						
+						local score = 0
+						if Config.TargetPriority == "Distancia" then
+							score = 10000000 - dist3D
+						elseif Config.TargetPriority == "Menos Vida" then
+							score = 10000000 - (hum.Health * 1000)
+						else
+							score = 10000000 - dist2D
+						end
+
 						if score > bestScore then
 							bestScore = score
 							bestPlr = plr
@@ -275,7 +398,7 @@ local function GetNearestEnemy()
 	if not myHRP then return nil end
 	local myPos = myHRP.Position
 	for _, plr in ipairs(Players:GetPlayers()) do
-		if plr ~= LocalPlayer and IsEnemy(plr) then
+		if CanTeleportTo(plr) then
 			local char, hrp, hum = GetChar(plr)
 			if char and hrp and hum and hum.Health > 0 then
 				local dist = (hrp.Position - myPos).Magnitude
@@ -383,7 +506,7 @@ local function UpdateESP()
 	local now = tick()
 
 	for _, plr in ipairs(Players:GetPlayers()) do
-		if plr == LocalPlayer or not IsEnemy(plr) then
+		if not CanTeleportTo(plr) then
 			RemoveESP(plr)
 			continue
 		end
@@ -433,7 +556,7 @@ local function UpdateESP()
 	end
 end
 
-MainTab:CreateSection("COMBATE - RAJEBOT BRUTAL OMEGA")
+MainTab:CreateSection("COMBATE")
 
 MainTab:CreateToggle({
 	Name = "Enabled",
@@ -450,6 +573,50 @@ MainTab:CreateToggle({
 	Flag = "TeleportRage",
 	Callback = function(Value)
 		Config.TeleportRage = Value
+	end,
+})
+
+MainTab:CreateToggle({
+	Name = "ffa mide (free for all)",
+	CurrentValue = Config.FFAMode,
+	Flag = "FFAMode",
+	Callback = function(Value)
+		Config.FFAMode = Value
+	end,
+})
+
+MainTab:CreateToggle({
+	Name = "Predicción de Movimiento",
+	CurrentValue = Config.Prediction,
+	Flag = "Prediction",
+	Callback = function(Value)
+		Config.Prediction = Value
+	end,
+})
+
+MainTab:CreateSlider({
+	Name = "Factor de Predicción",
+	Range = {0.05, 0.3},
+	Increment = 0.01,
+	CurrentValue = Config.PredictionFactor,
+	Flag = "PredictionFactor",
+	Callback = function(Value)
+		Config.PredictionFactor = Value
+	end,
+})
+
+MainTab:CreateDropdown({
+	Name = "Prioridad de Objetivo",
+	Options = {"Distancia", "Menos Vida", "FOV"},
+	CurrentOption = Config.TargetPriority,
+	MultipleOptions = false,
+	Flag = "TargetPriority",
+	Callback = function(Option)
+		if type(Option) == "table" then
+			Config.TargetPriority = Option[1]
+		else
+			Config.TargetPriority = Option
+		end
 	end,
 })
 
@@ -487,6 +654,24 @@ MainTab:CreateSlider({
 })
 
 MainTab:CreateToggle({
+	Name = "Anti Katana (IA Detect)",
+	CurrentValue = Config.AntiKatana,
+	Flag = "AntiKatana",
+	Callback = function(Value)
+		Config.AntiKatana = Value
+	end,
+})
+
+MainTab:CreateToggle({
+	Name = "Anti Escudo / Riot (IA Detect)",
+	CurrentValue = Config.AntiShield,
+	Flag = "AntiShield",
+	Callback = function(Value)
+		Config.AntiShield = Value
+	end,
+})
+
+MainTab:CreateToggle({
 	Name = "Dynamic Part",
 	CurrentValue = Config.AimPartDynamic,
 	Flag = "AimPartDynamic",
@@ -515,7 +700,7 @@ MainTab:CreateToggle({
 
 MainTab:CreateSlider({
 	Name = "FOV Extremo",
-	Range = {1000, 40000},
+	Range = {1000, 50000},
 	Increment = 500,
 	CurrentValue = Config.FOV,
 	Flag = "FOV",
@@ -524,7 +709,7 @@ MainTab:CreateSlider({
 	end,
 })
 
-MainTab:CreateSection("COMBATE - SCRIPTS EXTERNOS")
+MainTab:CreateSection("SCRIPTS EXTERNOS")
 
 MainTab:CreateButton({
 	Name = "Aimbot",
@@ -544,7 +729,7 @@ MainTab:CreateButton({
 	end,
 })
 
-MainTab:CreateSection("COMBATE - MECANICAS DE ARMAS")
+MainTab:CreateSection("MECANICAS DE ARMAS")
 
 MainTab:CreateToggle({
 	Name = "Sin Dispersión (No Spread)",
@@ -597,35 +782,6 @@ MainTab:CreateToggle({
 	Flag = "ExtendedRange",
 	Callback = function(Value)
 		Config.ExtendedRange = Value
-	end,
-})
-
-MainTab:CreateSection("COMBATE - PROTECCIÓN & VISUALES")
-
-MainTab:CreateToggle({
-	Name = "Target Line",
-	CurrentValue = Config.ShowTargetLine,
-	Flag = "ShowTargetLine",
-	Callback = function(Value)
-		Config.ShowTargetLine = Value
-	end,
-})
-
-MainTab:CreateToggle({
-	Name = "Nearest Enemy Line",
-	CurrentValue = Config.NearestLine,
-	Flag = "NearestLine",
-	Callback = function(Value)
-		Config.NearestLine = Value
-	end,
-})
-
-MainTab:CreateToggle({
-	Name = "Hit Notify",
-	CurrentValue = Config.HitNotify,
-	Flag = "HitNotify",
-	Callback = function(Value)
-		Config.HitNotify = Value
 	end,
 })
 
@@ -709,7 +865,7 @@ MoveTab:CreateSlider({
 	end,
 })
 
-ESPTab:CreateSection("ESP / VISUALS")
+ESPTab:CreateSection("ESP")
 
 ESPTab:CreateToggle({
 	Name = "ESP",
@@ -807,6 +963,35 @@ ESPTab:CreateSlider({
 	end,
 })
 
+ESPTab:CreateSection("PROTECCIÓN & VISUALES")
+
+ESPTab:CreateToggle({
+	Name = "Target Line",
+	CurrentValue = Config.ShowTargetLine,
+	Flag = "ShowTargetLine",
+	Callback = function(Value)
+		Config.ShowTargetLine = Value
+	end,
+})
+
+ESPTab:CreateToggle({
+	Name = "Nearest Enemy Line",
+	CurrentValue = Config.NearestLine,
+	Flag = "NearestLine",
+	Callback = function(Value)
+		Config.NearestLine = Value
+	end,
+})
+
+ESPTab:CreateToggle({
+	Name = "Hit Notify",
+	CurrentValue = Config.HitNotify,
+	Flag = "HitNotify",
+	Callback = function(Value)
+		Config.HitNotify = Value
+	end,
+})
+
 MiscTab:CreateSection("MISC")
 
 MiscTab:CreateToggle({
@@ -857,6 +1042,146 @@ MiscTab:CreateSlider({
 	Flag = "SkyB",
 	Callback = function(Value)
 		Config.SkyB = Value
+	end,
+})
+
+SettingsTab:CreateSection("GESTIÓN DE CONFIGURACIONES")
+
+local ConfigNameInput = ""
+local SelectedConfigItem = "Ninguna"
+local ConfigListDropdown = nil
+
+local function GetConfigList()
+	local list = {}
+	pcall(function()
+		if isfolder(CONFIG_FOLDER) then
+			for _, file in ipairs(listfiles(CONFIG_FOLDER)) do
+				local name = file:match("([^/]+)$")
+				name = name:match("([^\]+)$") or name
+				if name ~= "autoload.json" then
+					name = name:gsub("%.json$", "")
+					table.insert(list, name)
+				end
+			end
+		end
+	end)
+	if #list == 0 then
+		table.insert(list, "Ninguna")
+	end
+	return list
+end
+
+SettingsTab:CreateInput({
+	Name = "Nombre de Config",
+	PlaceholderText = "Escribe el nombre aquí...",
+	NumbersOnly = false,
+	CharacterLimit = 30,
+	OnEnter = false,
+	RemoveTextAfterFocusLost = false,
+	Callback = function(Text)
+		ConfigNameInput = Text
+	end,
+})
+
+SettingsTab:CreateButton({
+	Name = "Crear Config",
+	Callback = function()
+		if ConfigNameInput and ConfigNameInput ~= "" then
+			local success, err = pcall(function()
+				writefile(CONFIG_FOLDER .. "/" .. ConfigNameInput .. ".json", HttpService:JSONEncode(Config))
+			end)
+			if success then
+				Notify("Config '" .. ConfigNameInput .. "' creada correctamente", 1.5)
+				if ConfigListDropdown then
+					ConfigListDropdown:Refresh(GetConfigList(), true)
+				end
+			else
+				warn("Error creando config:", err)
+				Notify("Error al crear la config", 1.5)
+			end
+		else
+			Notify("Escribe un nombre válido", 1.5)
+		end
+	end,
+})
+
+ConfigListDropdown = SettingsTab:CreateDropdown({
+	Name = "Lista de Configs",
+	Options = GetConfigList(),
+	CurrentOption = "Ninguna",
+	MultipleOptions = false,
+	Flag = "ConfigListDropdown",
+	Callback = function(Option)
+		if type(Option) == "table" then
+			SelectedConfigItem = Option[1]
+		else
+			SelectedConfigItem = Option
+		end
+	end,
+})
+
+SettingsTab:CreateButton({
+	Name = "Load Config",
+	Callback = function()
+		if SelectedConfigItem and SelectedConfigItem ~= "Ninguna" then
+			local success = pcall(function()
+				local path = CONFIG_FOLDER .. "/" .. SelectedConfigItem .. ".json"
+				if isfile(path) then
+					local data = HttpService:JSONDecode(readfile(path))
+					for k, v in pairs(data) do
+						Config[k] = v
+					end
+				end
+			end)
+			if success then
+				Notify("Config '" .. SelectedConfigItem .. "' cargada", 1.5)
+			else
+				Notify("Error al cargar la config", 1.5)
+			end
+		else
+			Notify("Selecciona una config válida", 1.5)
+		end
+	end,
+})
+
+SettingsTab:CreateButton({
+	Name = "Delete Config",
+	Callback = function()
+		if SelectedConfigItem and SelectedConfigItem ~= "Ninguna" then
+			pcall(function()
+				local path = CONFIG_FOLDER .. "/" .. SelectedConfigItem .. ".json"
+				if isfile(path) then
+					delfile(path)
+				end
+			end)
+			Notify("Config '" .. SelectedConfigItem .. "' eliminada", 1.5)
+			SelectedConfigItem = "Ninguna"
+			if ConfigListDropdown then
+				ConfigListDropdown:Refresh(GetConfigList(), true)
+			end
+		else
+			Notify("Selecciona una config válida", 1.5)
+		end
+	end,
+})
+
+SettingsTab:CreateButton({
+	Name = "Autoload Config",
+	Callback = function()
+		if SelectedConfigItem and SelectedConfigItem ~= "Ninguna" then
+			SaveAutoloadConfig(SelectedConfigItem)
+			Notify("Autoload establecido en: " .. SelectedConfigItem, 1.5)
+		else
+			Notify("Selecciona una config válida para autoload", 1.5)
+		end
+	end,
+})
+
+SettingsTab:CreateButton({
+	Name = "Clear Autoload",
+	Callback = function()
+		ClearAutoloadConfig()
+		Notify("Autoload limpiado / desactivado", 1.5)
 	end,
 })
 
@@ -924,7 +1249,7 @@ end)
 if not WatermarkGui.Parent then WatermarkGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 
 local WatermarkLabel = Instance.new("TextLabel")
-WatermarkLabel.Size = UDim2.new(0, 360, 0, 25)
+WatermarkLabel.Size = UDim2.new(0, 480, 0, 25)
 WatermarkLabel.Position = UDim2.new(0, 10, 0, 75)
 WatermarkLabel.BackgroundTransparency = 0.2
 WatermarkLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
@@ -967,12 +1292,12 @@ Connections[#Connections+1] = RunService.RenderStepped:Connect(function(dt)
 	RainbowHue = (RainbowHue + dt * 0.9) % 1
 	local rainbowColor = Color3.fromHSV(RainbowHue, 1, 1)
 
-	WatermarkLabel.Text = "PUBLIC BETA BUILD | " .. LocalPlayer.Name .. " | APOCALYPSE.LOL | " .. CurrentFPS .. " FPS"
+	WatermarkLabel.Text = "PUBLIC BETA BUILD | " .. LocalPlayer.Name .. " | " .. CurrentFPS .. " FPS | RIVALS BUILD"
 
 	if Config.Ragebot and CurrentTarget then
 		RageStatusLabel.Visible = true
 		RageStatusLabel.TextColor3 = rainbowColor
-		RageStatusLabel.Text = "rageboting: killing " .. CurrentTarget.Name
+		RageStatusLabel.Text = "targeting: " .. CurrentTarget.Name
 	else
 		RageStatusLabel.Visible = false
 	end
@@ -1049,7 +1374,7 @@ Connections[#Connections+1] = RunService.RenderStepped:Connect(function(dt)
 	end
 end)
 
-Connections[#Connections+1] = RunService.Heartbeat:Connect(function()
+Connections[#Connections+1] = RunService.RenderStepped:Connect(function(dt)
 	if not Loaded then return end
 	local char, hrp, hum = GetChar()
 	if not char then
@@ -1069,8 +1394,13 @@ Connections[#Connections+1] = RunService.Heartbeat:Connect(function()
 			if eHrp and eHum and eHum.Health > 0 then
 				CurrentTarget = plr
 				
-				local targetCF = CFrame.lookAt(Camera.CFrame.Position, part.Position)
-				Camera.CFrame = targetCF
+				local targetPos = part.Position
+				if Config.Prediction then
+					targetPos = targetPos + (eHrp.AssemblyLinearVelocity * Config.PredictionFactor)
+				end
+
+				local targetCF = CFrame.lookAt(Camera.CFrame.Position, targetPos)
+				Camera.CFrame = Camera.CFrame:Lerp(targetCF, 0.5)
 				
 				pcall(function()
 					LocalPlayer:SetMouseIconEnabled(true)
@@ -1078,11 +1408,15 @@ Connections[#Connections+1] = RunService.Heartbeat:Connect(function()
 				
 				if Config.TeleportRage and hrp then
 					local enemyCFrame = eHrp.CFrame
-					local offsetPos = enemyCFrame.Position 
+					local predictedPos = enemyCFrame.Position + (eHrp.AssemblyLinearVelocity * (Config.Prediction and Config.PredictionFactor or 0))
+					local offsetPos = predictedPos 
 						- (enemyCFrame.LookVector * Config.TeleportOffsetZ) 
 						- (enemyCFrame.RightVector * Config.TeleportOffsetX) 
 						+ Vector3.new(0, Config.TeleportOffsetY, 0)
-					hrp.CFrame = CFrame.new(offsetPos, eHrp.Position)
+					
+					hrp.CFrame = hrp.CFrame:Lerp(CFrame.new(offsetPos, predictedPos), 0.6)
+					hrp.AssemblyLinearVelocity = Vector3.zero
+					hrp.AssemblyAngularVelocity = Vector3.zero
 				end
 			end
 		else
@@ -1091,6 +1425,12 @@ Connections[#Connections+1] = RunService.Heartbeat:Connect(function()
 	else
 		CurrentTarget = nil
 	end
+end)
+
+Connections[#Connections+1] = RunService.Heartbeat:Connect(function()
+	if not Loaded then return end
+	local char, hrp, hum = GetChar()
+	if not char then return end
 
 	if Config.Fly then
 		if not Flying then
@@ -1114,7 +1454,6 @@ Connections[#Connections+1] = RunService.Heartbeat:Connect(function()
 			if UserInputService:IsKeyDown(Enum.KeyCode.Space) then move += Vector3.yAxis end
 			if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then move -= Vector3.yAxis end
 			local speed = Config.FlySpeed
-			if Config.AntiDetection then speed = speed * SafeRandom(0.98, 1.02) end
 			FlyVel.VectorVelocity = move.Magnitude > 0 and move.Unit * speed or Vector3.zero
 		end
 	else
@@ -1126,11 +1465,7 @@ Connections[#Connections+1] = RunService.Heartbeat:Connect(function()
 	end
 
 	if Config.Speed then
-		local spd = Config.SpeedValue
-		if Config.HumanMove or Config.AntiDetection then
-			spd = spd * SafeRandom(0.92, 1.05)
-		end
-		hum.WalkSpeed = spd
+		hum.WalkSpeed = Config.SpeedValue
 	else
 		if hum.WalkSpeed ~= OriginalWalkSpeed then hum.WalkSpeed = OriginalWalkSpeed end
 	end
@@ -1168,7 +1503,7 @@ task.spawn(function()
 		end
 		if Config.HitNotify then
 			for _, plr in ipairs(Players:GetPlayers()) do
-				if plr ~= LocalPlayer and IsEnemy(plr) then
+				if CanTeleportTo(plr) then
 					local _, _, hum = GetChar(plr)
 					if hum then
 						local uid = plr.UserId
@@ -1183,7 +1518,7 @@ task.spawn(function()
 				end
 			end
 		end
-		task.wait(Config.AntiDetection and 0.04 or 0.02)
+		task.wait(0.01)
 	end
 end)
 
@@ -1191,7 +1526,7 @@ UserInputService.InputBegan:Connect(function(input, gp)
 	if gp then return end
 	if input.KeyCode == Enum.KeyCode.R then
 		Config.Ragebot = not Config.Ragebot
-		Notify("RajeBot Hiper-Brutal " .. (Config.Ragebot and "ON" or "OFF"))
+		Notify("Ragebot " .. (Config.Ragebot and "ON" or "OFF"))
 	elseif input.KeyCode == Enum.KeyCode.F then Config.Fly = not Config.Fly
 	elseif input.KeyCode == Enum.KeyCode.V then Config.ESP = not Config.ESP
 	elseif input.KeyCode == Enum.KeyCode.N then Config.Noclip = not Config.Noclip
@@ -1226,6 +1561,19 @@ end)
 
 Loaded = true
 
-Rayfield:LoadConfiguration()
-Notify("APOCALYPSE.LOL // RAYFIELD INTERFACE LOADED", 1.5)
+local autoloadName = GetAutoloadConfig()
+if autoloadName then
+	pcall(function()
+		local path = CONFIG_FOLDER .. "/" .. autoloadName .. ".json"
+		if isfile(path) then
+			local data = HttpService:JSONDecode(readfile(path))
+			for k, v in pairs(data) do
+				Config[k] = v
+			end
+		end
+	end)
+	Notify("Autoload cargado: " .. autoloadName, 2)
+else
+	Notify("Apocalypse.lol loaded successfully", 1.5)
+end
 
