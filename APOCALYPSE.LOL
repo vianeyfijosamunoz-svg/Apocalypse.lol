@@ -54,7 +54,7 @@ do
 
 	local bg = Instance.new("Frame")
 	bg.Size = UDim2.fromScale(1, 1)
-	bg.BackgroundColor3 = Color3.fromRGB(2, 2, 4)
+	bg.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
 	bg.BorderSizePixel = 0
 	bg.Parent = loadGui
 
@@ -62,10 +62,10 @@ do
 	title.Size = UDim2.new(1, 0, 0, 50)
 	title.Position = UDim2.new(0, 0, 0.35, 0)
 	title.BackgroundTransparency = 1
-	title.Text = "Apocalypse.lol"
-	title.TextColor3 = Color3.fromRGB(255, 0, 18)
+	title.Text = "APOCALYPSE.LOL [ULTRA-GODMODE OMNI-WALLBANG v10.5]"
+	title.TextColor3 = Color3.fromRGB(255, 0, 0)
 	title.Font = Enum.Font.GothamBold
-	title.TextSize = 34
+	title.TextSize = 28
 	title.Parent = bg
 
 	local discordText = Instance.new("TextLabel")
@@ -73,7 +73,7 @@ do
 	discordText.Position = UDim2.new(0, 0, 0.42, 0)
 	discordText.BackgroundTransparency = 1
 	discordText.Text = "discord.gg/tvYWHS2B8"
-	discordText.TextColor3 = Color3.fromRGB(150, 150, 175)
+	discordText.TextColor3 = Color3.fromRGB(180, 180, 200)
 	discordText.Font = Enum.Font.GothamMedium
 	discordText.TextSize = 14
 	discordText.Parent = bg
@@ -82,7 +82,7 @@ do
 	status.Size = UDim2.new(1, 0, 0, 28)
 	status.Position = UDim2.new(0, 0, 0.49, 0)
 	status.BackgroundTransparency = 1
-	status.Text = "Cargando Apocalypse.lol..."
+	status.Text = "Inyectando Motor Hyper-Rage Extremo con Wallbang Absoluto..."
 	status.TextColor3 = Color3.fromRGB(240, 240, 255)
 	status.Font = Enum.Font.Gotham
 	status.TextSize = 15
@@ -91,14 +91,14 @@ do
 	local barBg = Instance.new("Frame")
 	barBg.Size = UDim2.new(0, 280, 0, 8)
 	barBg.Position = UDim2.new(0.5, -140, 0.57, 0)
-	barBg.BackgroundColor3 = Color3.fromRGB(12, 12, 18)
+	barBg.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
 	barBg.BorderSizePixel = 0
 	barBg.Parent = bg
 	Instance.new("UICorner", barBg).CornerRadius = UDim.new(1, 0)
 
 	local barFill = Instance.new("Frame")
 	barFill.Size = UDim2.new(0, 0, 1, 0)
-	barFill.BackgroundColor3 = Color3.fromRGB(255, 0, 18)
+	barFill.BackgroundColor3 = Color3.fromRGB(255, 0, 0)
 	barFill.BorderSizePixel = 0
 	barFill.Parent = barBg
 	Instance.new("UICorner", barFill).CornerRadius = UDim.new(1, 0)
@@ -108,13 +108,13 @@ do
 	percent.Position = UDim2.new(0, 0, 0.61, 0)
 	percent.BackgroundTransparency = 1
 	percent.Text = "0%"
-	percent.TextColor3 = Color3.fromRGB(170, 170, 185)
+	percent.TextColor3 = Color3.fromRGB(180, 180, 200)
 	percent.Font = Enum.Font.Gotham
 	percent.TextSize = 13
 	percent.Parent = bg
 
 	local startTime = tick()
-	local duration = 0.3
+	local duration = 0.015
 
 	while tick() - startTime < duration do
 		local progress = math.clamp((tick() - startTime) / duration, 0, 1)
@@ -126,14 +126,16 @@ do
 end
 
 local Config = {
-	Ragebot = false,
-	TeleportRage = true,
+	Wallbang = true,
+	TeleportWallbang = true,
+	SilentAim = true,
 	FFAMode = false,
-	TeleportOffsetY = 8,
+	TeleportOffsetY = 2,
 	TeleportOffsetX = 0,
-	TeleportOffsetZ = 3,
+	TeleportOffsetZ = 2,
+	TeleportSmoothing = 1.0,
 	Prediction = true,
-	PredictionFactor = 0.12,
+	PredictionFactor = 0.15,
 	TargetPriority = "Distancia",
 	NoSpread = true,
 	NoRecoil = true,
@@ -142,24 +144,19 @@ local Config = {
 	AutoReload = true,
 	ExtendedRange = true,
 	AimPartDynamic = true,
-	FOV = 50000,
+	FOV = 99999,
 	TeamCheck = true,
 	VisibleCheck = false,
 	ShowTargetLine = true,
 	NearestLine = true,
 	HitNotify = true,
 	
+	VoidSpam = false,
 	AntiKatana = false,
 	AntiShield = false,
 	
-	Speed = false,
-	SpeedValue = 140,
-	Fly = false,
-	FlySpeed = 400,
 	Noclip = false,
 	InfiniteJump = false,
-	JumpPower = 250,
-	HumanMove = false,
 	
 	ESP = false,
 	ESPName = true,
@@ -180,11 +177,7 @@ local Config = {
 local Connections = {}
 local ESPObjects = {}
 local HealthCache = {}
-local Flying = false
 local Noclipping = false
-local OriginalWalkSpeed = 16
-local OriginalJumpPower = 50
-local FlyAtt, FlyVel = nil, nil
 local Loaded = false
 local CurrentTarget = nil
 local NearestEnemy = nil
@@ -195,9 +188,9 @@ local fpsFrames, fpsLast, CurrentFPS = 0, tick(), 60
 local Rayfield = loadstring(game:HttpGet('https://sirius.menu/rayfield'))()
 
 local Window = Rayfield:CreateWindow({
-	Name = "Apocalypse.lol",
+	Name = "Apocalypse.lol [ULTRA-GODMODE OMNI-WALLBANG]",
 	LoadingTitle = "Apocalypse.lol",
-	LoadingSubtitle = "Apocalypse.lol",
+	LoadingSubtitle = "Hyper-Aggressive God-Wallbang Ultimate Edition",
 	ConfigurationSaving = {
 		Enabled = true,
 		FolderName = CONFIG_FOLDER,
@@ -216,6 +209,7 @@ local MoveTab = Window:CreateTab("Movimiento", 402)
 local ESPTab = Window:CreateTab("ESP", 403)
 local MiscTab = Window:CreateTab("Misc", 404)
 local SettingsTab = Window:CreateTab("Settings", 405)
+local InfoTab = Window:CreateTab("Info Wallbang", 406)
 
 local function ProtectInstance(obj)
 	pcall(function()
@@ -226,6 +220,38 @@ local function ProtectInstance(obj)
 		end
 	end)
 end
+
+InfoTab:CreateSection("¿QUÉ ES UN RAGEBOT AGRESIVO CON WALLBANG?")
+
+InfoTab:CreateParagraph({
+	Title = "Conceptos Fundamentales",
+	Content = "1. Un ragebot agresivo con wallbang es un sistema automatizado utilizado en videojuegos.\n2. Su objetivo es proporcionar una ventaja significativa al jugador.\n3. El término “ragebot” describe un sistema de apuntado y ejecución de acciones extremadamente agresivo.\n4. El término “wallbang” hace referencia a la capacidad de atacar a un objetivo a través de paredes u otros obstáculos.\n5. En otras palabras, el sistema puede tratar ciertos elementos del entorno como si no impidieran el ataque.\n6. Un ragebot de este tipo puede estar compuesto por varios módulos."
+})
+
+InfoTab:CreateParagraph({
+	Title = "Módulos y Componentes",
+	Content = "7. El primero es el detector de objetivos.\n8. Este módulo se encarga de identificar jugadores presentes en la partida.\n9. No se limita únicamente a los jugadores que están directamente a la vista.\n10. También puede considerar jugadores situados detrás de determinados obstáculos.\n11. A continuación se encuentra el selector de objetivos.\n12. Su función es determinar qué jugador debe recibir prioridad.\n13. Si existen múltiples objetivos, el sistema puede elegir uno en función de reglas predefinidas.\n14. También existe el sistema de apuntado.\n15. Este módulo dirige la mira hacia el objetivo seleccionado.\n16. En un ragebot agresivo, este proceso puede ejecutarse de forma extremadamente rápida."
+})
+
+InfoTab:CreateParagraph({
+	Title = "Sistema de Wallbang y Suavizado Adaptativo",
+	Content = "17. Otro componente relevante es el sistema de wallbang.\n18. Este módulo está relacionado con los objetivos que se encuentran detrás de obstáculos.\n19. Su función conceptual es determinar si un objetivo puede ser alcanzado a través de dichos obstáculos.\n20. No todos los objetos o superficies se comportan de la misma manera.\n21. Su comportamiento depende de las reglas del videojuego.\n22. Algunos elementos bloquean completamente la acción.\n23. Otros permiten que ciertas acciones los atraviesen.\n24. Por ello, el sistema debe analizar las condiciones del entorno del juego."
+})
+
+InfoTab:CreateParagraph({
+	Title = "Verificación, Predicción y Operación",
+	Content = "25. También puede incluirse una verificación de visibilidad.\n26. Esta evalúa si existe una línea directa entre el jugador y el objetivo.\n27. En un sistema con wallbang, esta verificación puede interpretarse de forma distinta.\n28. El sistema puede considerar objetivos incluso cuando existen obstáculos que normalmente bloquearían la visión.\n29. Otro componente puede encargarse del cálculo de distancia.\n30. Este determina qué tan lejos se encuentra el objetivo.\n31. También puede existir un sistema de priorización.\n32. Este define qué objetivo debe ser considerado primero.\n33. Puede combinar información como distancia, posición y estado del objetivo.\n34. Otro módulo puede ser la selección de zona.\n35. Este determina qué parte del personaje se toma como referencia para el objetivo.\n36. También puede existir un sistema de activación.\n37. Este define en qué momento el sistema debe reaccionar.\n38. La predicción puede ser otro componente.\n39. Su función conceptual es analizar el movimiento de los jugadores.\n40. Esto permite anticipar desplazamientos del objetivo."
+})
+
+InfoTab:CreateParagraph({
+	Title = "Ejecución Conjunta y Comportamiento",
+	Content = "41. Todos estos componentes pueden trabajar de manera conjunta.\n42. Primero se detectan los posibles objetivos.\n43. Posteriormente se analiza su ubicación.\n44. Luego se verifica si son objetivos válidos.\n45. Después se les asigna una prioridad.\n46. El sistema de apuntado selecciona el objetivo con mayor prioridad.\n47. Si existe un obstáculo, interviene el módulo de wallbang.\n48. Este determina si el objetivo puede ser considerado a través del obstáculo.\n49. Por ello, un ragebot con wallbang puede percibirse como más agresivo.\n50. No se limita a objetivos completamente expuestos.\n51. También puede considerar objetivos parcialmente ocultos o detrás de estructuras.\n52. El sistema no opera con razonamiento humano.\n53. Simplemente ejecuta las reglas programadas.\n54. Es comparable a un conjunto de instrucciones ejecutadas por un sistema informático.\n55. Si se cumplen determinadas condiciones, responde en consecuencia.\n56. Por esta razón, distintos ragebots pueden comportarse de manera diferente.\n57. Algunos pueden tener funcionalidades limitadas.\n58. Otros pueden integrar múltiples sistemas simultáneamente.\n59. Un sistema más avanzado puede analizar objetivos de forma continua.\n60. También puede cambiar de objetivo cuando las condiciones varían.\n61. Puede evaluar posiciones, distancias y obstáculos de forma constante.\n62. Todo esto puede realizarse de manera automatizada."
+})
+
+InfoTab:CreateParagraph({
+	Title = "Consideraciones Finales y Resumen",
+	Content = "63. Por este motivo se utiliza el término “agresivo”.\n64. Indica una respuesta rápida y una búsqueda constante de objetivos.\n65. El wallbang añade una funcionalidad adicional al sistema.\n66. Permite considerar situaciones en las que existen obstáculos entre los jugadores.\n67. Sin embargo, su funcionamiento exacto depende del videojuego.\n68. Cada juego implementa reglas distintas para colisiones y disparos.\n69. En entornos competitivos, este tipo de automatización suele considerarse una forma de trampa.\n70. Puede otorgar una ventaja injusta frente a otros jugadores.\n71. También puede conllevar sanciones si es detectado por sistemas antitrampas.\n72. En resumen, combina detección, selección, apuntado y análisis de obstáculos.\n73. El ragebot automatiza el comportamiento ofensivo del jugador.\n74. El wallbang se relaciona con la interacción a través de obstáculos.\n75. En pocas palabras: es un sistema que detecta objetivos, los selecciona y automatiza el apuntado, incluso en situaciones donde existen paredes u otros obstáculos entre el jugador y el objetivo, diseñado para operar de la forma más fluida, precisa y letal posible."
+})
 
 local function Notify(text, t)
 	Rayfield:Notify({
@@ -347,6 +373,50 @@ local function GetAimPart(char)
 	return head or upperTorso or root
 end
 
+-- Integración del nuevo Wallbang con Raycast
+local WallbangSettings = {
+    MaxDistance = 5000,
+    VerticalOffset = 7,
+}
+
+local function getRaycastParams()
+    local params = RaycastParams.new()
+    params.FilterType = Enum.RaycastFilterType.Exclude
+    
+    local excludeList = {LocalPlayer.Character}
+    if LocalPlayer.Character then
+        for _, child in ipairs(LocalPlayer.Character:GetChildren()) do
+            if child:IsA("Accessory") or child:IsA("Tool") then
+                table.insert(excludeList, child)
+            end
+        end
+    end
+    
+    params.FilterDescendantsInstances = excludeList
+    params.IgnoreWater = true
+    return params
+end
+
+local function executeAggressiveWallbang()
+    if not Config.Wallbang then return nil end
+    
+    local mouse = LocalPlayer:GetMouse()
+    local origin = Camera.CFrame.Position
+    local direction = (mouse.Hit.Position - origin).Unit * WallbangSettings.MaxDistance
+    
+    local raycastResult = workspace:Raycast(origin, direction, getRaycastParams())
+    
+    if raycastResult then
+        local hitPart = raycastResult.Instance
+        if hitPart and not hitPart.Parent:FindFirstChild("Humanoid") then
+            local penetrationPoint = raycastResult.Position + (direction.Unit * WallbangSettings.VerticalOffset)
+            return penetrationPoint
+        end
+    end
+    
+    return nil
+end
+
 local function GetBestTargetRage()
 	local bestPlr, bestPart, bestScore = nil, nil, -math.huge
 	local center = Vector2.new(Camera.ViewportSize.X * 0.5, Camera.ViewportSize.Y * 0.5)
@@ -358,31 +428,33 @@ local function GetBestTargetRage()
 		if CanTeleportTo(plr) then
 			local char, hrp, hum = GetChar(plr)
 			if char and hrp and hum and hum.Health > 0 then
-				local kDetect, sDetect = AI_DetectThreat(char)
-				local blockedByThreat = false
-				if Config.AntiKatana and kDetect then blockedByThreat = true end
-				if Config.AntiShield and sDetect then blockedByThreat = true end
-				
-				if not blockedByThreat then
-					local part = GetAimPart(char)
-					if part then
-						local sp = Camera:WorldToViewportPoint(part.Position)
-						local dist3D = (hrp.Position - myPos).Magnitude
-						local dist2D = (Vector2.new(sp.X, sp.Y) - center).Magnitude
-						
-						local score = 0
-						if Config.TargetPriority == "Distancia" then
-							score = 10000000 - dist3D
-						elseif Config.TargetPriority == "Menos Vida" then
-							score = 10000000 - (hum.Health * 1000)
-						else
-							score = 10000000 - dist2D
-						end
+				if not HasProfileDisplay(char) then
+					local kDetect, sDetect = AI_DetectThreat(char)
+					local blockedByThreat = false
+					if Config.AntiKatana and kDetect then blockedByThreat = true end
+					if Config.AntiShield and sDetect then blockedByThreat = true end
+					
+					if not blockedByThreat then
+						local part = GetAimPart(char)
+						if part then
+							local sp = Camera:WorldToViewportPoint(part.Position)
+							local dist3D = (hrp.Position - myPos).Magnitude
+							local dist2D = (Vector2.new(sp.X, sp.Y) - center).Magnitude
+							
+							local score = 0
+							if Config.TargetPriority == "Distancia" then
+								score = 10000000 - dist3D
+							elseif Config.TargetPriority == "Menos Vida" then
+								score = 10000000 - (hum.Health * 1000)
+							else
+								score = 10000000 - dist2D
+							end
 
-						if score > bestScore then
-							bestScore = score
-							bestPlr = plr
-							bestPart = part
+							if score > bestScore then
+								bestScore = score
+								bestPlr = plr
+								bestPart = part
+							end
 						end
 					end
 				end
@@ -401,10 +473,12 @@ local function GetNearestEnemy()
 		if CanTeleportTo(plr) then
 			local char, hrp, hum = GetChar(plr)
 			if char and hrp and hum and hum.Health > 0 then
-				local dist = (hrp.Position - myPos).Magnitude
-				if dist < bestDist then
-					bestDist = dist
-					bestPlr = plr
+				if not HasProfileDisplay(char) then
+					local dist = (hrp.Position - myPos).Magnitude
+					if dist < bestDist then
+						bestDist = dist
+						bestPlr = plr
+					end
 				end
 			end
 		end
@@ -436,7 +510,7 @@ local function CreateESP(plr)
 	name.Size = UDim2.new(1, 0, 0, 13)
 	name.BackgroundTransparency = 1
 	name.Text = plr.Name
-	name.TextColor3 = Color3.fromRGB(255, 0, 18)
+	name.TextColor3 = Color3.fromRGB(255, 0, 0)
 	name.TextStrokeTransparency = 0.2
 	name.Font = Enum.Font.GothamBold
 	name.TextSize = 11
@@ -447,7 +521,7 @@ local function CreateESP(plr)
 	dist.Position = UDim2.new(0, 0, 0, 12)
 	dist.BackgroundTransparency = 1
 	dist.Text = ""
-	dist.TextColor3 = Color3.fromRGB(120, 120, 140)
+	dist.TextColor3 = Color3.fromRGB(150, 150, 175)
 	dist.Font = Enum.Font.Gotham
 	dist.TextSize = 9
 	dist.Parent = bill
@@ -457,7 +531,7 @@ local function CreateESP(plr)
 	hpText.Position = UDim2.new(0, 0, 0, 22)
 	hpText.BackgroundTransparency = 1
 	hpText.Text = ""
-	hpText.TextColor3 = Color3.fromRGB(0, 240, 110)
+	hpText.TextColor3 = Color3.fromRGB(0, 255, 100)
 	hpText.Font = Enum.Font.GothamBold
 	hpText.TextSize = 9
 	hpText.Parent = bill
@@ -465,14 +539,14 @@ local function CreateESP(plr)
 	local bg = Instance.new("Frame")
 	bg.Size = UDim2.new(0.8, 0, 0, 4)
 	bg.Position = UDim2.new(0.1, 0, 0, 34)
-	bg.BackgroundColor3 = Color3.fromRGB(15, 15, 22)
+	bg.BackgroundColor3 = Color3.fromRGB(15, 15, 20)
 	bg.BorderSizePixel = 0
 	bg.Parent = bill
 	Instance.new("UICorner", bg).CornerRadius = UDim.new(1, 0)
 
 	local fill = Instance.new("Frame")
 	fill.Size = UDim2.new(1, 0, 1, 0)
-	fill.BackgroundColor3 = Color3.fromRGB(0, 240, 110)
+	fill.BackgroundColor3 = Color3.fromRGB(0, 255, 100)
 	fill.BorderSizePixel = 0
 	fill.Parent = bg
 	Instance.new("UICorner", fill).CornerRadius = UDim.new(1, 0)
@@ -547,8 +621,8 @@ local function UpdateESP()
 			data.HPText.Text = hp .. " HP"
 			data.Fill.Size = UDim2.new(pct, 0, 1, 0)
 			local r = 255 * (1 - pct)
-			local g = 240 * pct
-			data.Fill.BackgroundColor3 = Color3.fromRGB(r, g, 20)
+			local g = 255 * pct
+			data.Fill.BackgroundColor3 = Color3.fromRGB(r, g, 0)
 		else
 			data.HPText.Text = ""
 			data.Fill.Size = UDim2.new(0, 0, 1, 0)
@@ -560,28 +634,46 @@ MainTab:CreateSection("COMBATE")
 
 MainTab:CreateToggle({
 	Name = "Enabled",
-	CurrentValue = Config.Ragebot,
-	Flag = "Ragebot",
+	CurrentValue = Config.Wallbang,
+	Flag = "Wallbang",
 	Callback = function(Value)
-		Config.Ragebot = Value
+		Config.Wallbang = Value
 	end,
 })
 
 MainTab:CreateToggle({
-	Name = "Ragebot",
-	CurrentValue = Config.TeleportRage,
-	Flag = "TeleportRage",
+	Name = "HYPER-VOID OMNI-WALLBANG (Bypass Absoluto Brutal)",
+	CurrentValue = Config.TeleportWallbang,
+	Flag = "TeleportWallbang",
 	Callback = function(Value)
-		Config.TeleportRage = Value
+		Config.TeleportWallbang = Value
 	end,
 })
 
 MainTab:CreateToggle({
-	Name = "ffa mide (free for all)",
+	Name = "Silent Aim (Disparo Silencioso Letal)",
+	CurrentValue = Config.SilentAim,
+	Flag = "SilentAim",
+	Callback = function(Value)
+		Config.SilentAim = Value
+	end,
+})
+
+MainTab:CreateToggle({
+	Name = "ffa mode (free for all)",
 	CurrentValue = Config.FFAMode,
 	Flag = "FFAMode",
 	Callback = function(Value)
 		Config.FFAMode = Value
+	end,
+})
+
+MainTab:CreateToggle({
+	Name = "Void Spam",
+	CurrentValue = Config.VoidSpam,
+	Flag = "VoidSpam",
+	Callback = function(Value)
+		Config.VoidSpam = Value
 	end,
 })
 
@@ -596,7 +688,7 @@ MainTab:CreateToggle({
 
 MainTab:CreateSlider({
 	Name = "Factor de Predicción",
-	Range = {0.05, 0.3},
+	Range = {0.05, 0.4},
 	Increment = 0.01,
 	CurrentValue = Config.PredictionFactor,
 	Flag = "PredictionFactor",
@@ -653,6 +745,17 @@ MainTab:CreateSlider({
 	end,
 })
 
+MainTab:CreateSlider({
+	Name = "Velocidad de Posicionamiento TP",
+	Range = {0.1, 1.0},
+	Increment = 0.05,
+	CurrentValue = Config.TeleportSmoothing,
+	Flag = "TeleportSmoothing",
+	Callback = function(Value)
+		Config.TeleportSmoothing = Value
+	end,
+})
+
 MainTab:CreateToggle({
 	Name = "Anti Katana (IA Detect)",
 	CurrentValue = Config.AntiKatana,
@@ -700,7 +803,7 @@ MainTab:CreateToggle({
 
 MainTab:CreateSlider({
 	Name = "FOV Extremo",
-	Range = {1000, 50000},
+	Range = {1000, 99999},
 	Increment = 500,
 	CurrentValue = Config.FOV,
 	Flag = "FOV",
@@ -715,7 +818,7 @@ MainTab:CreateButton({
 	Name = "Aimbot",
 	Callback = function()
 		pcall(function()
-			loadstring(game:HttpGet("https://rawscripts.net/raw/Universal-Script-Good-Aimbot-Mobile-122484"))()
+			loadstring(game:HttpGet("https://github.com/vianeyfijosamunoz-svg/APOCALYPSE-AIMBOT/raw/refs/heads/main/APOCALYPSE.LOLONLY-AIMBOT-SUPORTED-%20+250%20GAMES"))()
 		end)
 	end,
 })
@@ -788,24 +891,6 @@ MainTab:CreateToggle({
 MoveTab:CreateSection("MOVIMIENTO")
 
 MoveTab:CreateToggle({
-	Name = "Speed",
-	CurrentValue = Config.Speed,
-	Flag = "Speed",
-	Callback = function(Value)
-		Config.Speed = Value
-	end,
-})
-
-MoveTab:CreateToggle({
-	Name = "Fly",
-	CurrentValue = Config.Fly,
-	Flag = "Fly",
-	Callback = function(Value)
-		Config.Fly = Value
-	end,
-})
-
-MoveTab:CreateToggle({
 	Name = "Noclip",
 	CurrentValue = Config.Noclip,
 	Flag = "Noclip",
@@ -820,48 +905,6 @@ MoveTab:CreateToggle({
 	Flag = "InfiniteJump",
 	Callback = function(Value)
 		Config.InfiniteJump = Value
-	end,
-})
-
-MoveTab:CreateToggle({
-	Name = "Human Movement",
-	CurrentValue = Config.HumanMove,
-	Flag = "HumanMove",
-	Callback = function(Value)
-		Config.HumanMove = Value
-	end,
-})
-
-MoveTab:CreateSlider({
-	Name = "Walk Speed",
-	Range = {16, 400},
-	Increment = 5,
-	CurrentValue = Config.SpeedValue,
-	Flag = "SpeedValue",
-	Callback = function(Value)
-		Config.SpeedValue = Value
-	end,
-})
-
-MoveTab:CreateSlider({
-	Name = "Fly Speed",
-	Range = {30, 900},
-	Increment = 10,
-	CurrentValue = Config.FlySpeed,
-	Flag = "FlySpeed",
-	Callback = function(Value)
-		Config.FlySpeed = Value
-	end,
-})
-
-MoveTab:CreateSlider({
-	Name = "Jump Power",
-	Range = {40, 700},
-	Increment = 10,
-	CurrentValue = Config.JumpPower,
-	Flag = "JumpPower",
-	Callback = function(Value)
-		Config.JumpPower = Value
 	end,
 })
 
@@ -1168,6 +1211,7 @@ SettingsTab:CreateButton({
 SettingsTab:CreateButton({
 	Name = "Autoload Config",
 	Callback = function()
+		SelectedConfigItem = SelectedConfigItem
 		if SelectedConfigItem and SelectedConfigItem ~= "Ninguna" then
 			SaveAutoloadConfig(SelectedConfigItem)
 			Notify("Autoload establecido en: " .. SelectedConfigItem, 1.5)
@@ -1190,7 +1234,7 @@ if FOVCircle then
 	FOVCircle.Thickness = 1.1
 	FOVCircle.NumSides = 64
 	FOVCircle.Filled = false
-	FOVCircle.Color = Color3.fromRGB(255, 0, 18)
+	FOVCircle.Color = Color3.fromRGB(255, 0, 0)
 	FOVCircle.Transparency = 0.4
 	FOVCircle.Visible = false
 end
@@ -1198,7 +1242,7 @@ end
 local TargetLine = Drawing and Drawing.new("Line")
 if TargetLine then
 	TargetLine.Thickness = 1.2
-	TargetLine.Color = Color3.fromRGB(255, 0, 18)
+	TargetLine.Color = Color3.fromRGB(255, 0, 0)
 	TargetLine.Transparency = 0.25
 	TargetLine.Visible = false
 end
@@ -1206,7 +1250,7 @@ end
 local NearestLineDraw = Drawing and Drawing.new("Line")
 if NearestLineDraw then
 	NearestLineDraw.Thickness = 1.4
-	NearestLineDraw.Color = Color3.fromRGB(0, 240, 110)
+	NearestLineDraw.Color = Color3.fromRGB(0, 255, 100)
 	NearestLineDraw.Transparency = 0.2
 	NearestLineDraw.Visible = false
 end
@@ -1249,16 +1293,17 @@ end)
 if not WatermarkGui.Parent then WatermarkGui.Parent = LocalPlayer:WaitForChild("PlayerGui") end
 
 local WatermarkLabel = Instance.new("TextLabel")
-WatermarkLabel.Size = UDim2.new(0, 480, 0, 25)
-WatermarkLabel.Position = UDim2.new(0, 10, 0, 75)
-WatermarkLabel.BackgroundTransparency = 0.2
+WatermarkLabel.Size = UDim2.new(0, 0, 0, 16)
+WatermarkLabel.Position = UDim2.new(0, 2, 0, 2)
+WatermarkLabel.BackgroundTransparency = 0.25
 WatermarkLabel.BackgroundColor3 = Color3.fromRGB(0, 0, 0)
-WatermarkLabel.TextColor3 = Color3.fromRGB(255, 0, 18)
+WatermarkLabel.TextColor3 = Color3.fromRGB(255, 0, 0)
 WatermarkLabel.Font = Enum.Font.GothamBold
-WatermarkLabel.TextSize = 12
+WatermarkLabel.TextSize = 9
 WatermarkLabel.TextStrokeTransparency = 0.3
+WatermarkLabel.AutomaticSize = Enum.AutomaticSize.X
 WatermarkLabel.Parent = WatermarkGui
-Instance.new("UICorner", WatermarkLabel).CornerRadius = UDim.new(0, 4)
+Instance.new("UICorner", WatermarkLabel).CornerRadius = UDim.new(0, 3)
 
 local RageStatusGui = Instance.new("ScreenGui")
 RageStatusGui.Name = "RageStatus"
@@ -1272,7 +1317,7 @@ if not RageStatusGui.Parent then RageStatusGui.Parent = LocalPlayer:WaitForChild
 
 local RageStatusLabel = Instance.new("TextLabel")
 RageStatusLabel.Size = UDim2.new(0, 300, 0, 30)
-RageStatusLabel.Position = UDim2.new(0.5, -150, 0.5, 25)
+RageStatusLabel.Position = UDim2.new(0.5, -150,.5, 25)
 RageStatusLabel.BackgroundTransparency = 1
 RageStatusLabel.Text = ""
 RageStatusLabel.Font = Enum.Font.GothamBold
@@ -1280,6 +1325,35 @@ RageStatusLabel.TextSize = 13
 RageStatusLabel.TextStrokeTransparency = 0.2
 RageStatusLabel.Visible = false
 RageStatusLabel.Parent = RageStatusGui
+
+pcall(function()
+	local mt = getrawmetatable(game)
+	setreadonly(mt, false)
+	local oldIndex = mt.__index
+	mt.__index = newcclosure(function(self, idx)
+		if Config.Wallbang and Config.SilentAim and not checkcaller() then
+			if self == mouse and (idx == "Hit" or idx == "Target") then
+				local plr, part = GetBestTargetRage()
+				if part then
+					local eChar, eHrp = GetChar(plr)
+					if eHrp then
+						local tPos = part.Position
+						if Config.Prediction then
+							tPos = tPos + (eHrp.AssemblyLinearVelocity * Config.PredictionFactor)
+						end
+						if idx == "Hit" then
+							return CFrame.new(tPos)
+						elseif idx == "Target" then
+							return part
+						end
+					end
+				end
+			end
+		end
+		return oldIndex(self, idx)
+	end)
+	setreadonly(mt, true)
+end)
 
 Connections[#Connections+1] = RunService.RenderStepped:Connect(function(dt)
 	fpsFrames += 1
@@ -1292,9 +1366,9 @@ Connections[#Connections+1] = RunService.RenderStepped:Connect(function(dt)
 	RainbowHue = (RainbowHue + dt * 0.9) % 1
 	local rainbowColor = Color3.fromHSV(RainbowHue, 1, 1)
 
-	WatermarkLabel.Text = "PUBLIC BETA BUILD | " .. LocalPlayer.Name .. " | " .. CurrentFPS .. " FPS | RIVALS BUILD"
+	WatermarkLabel.Text = "APOCALYPSE.LOL [ULTRA-GODMODE OMNI-WALLBANG] | " .. CurrentFPS + math.random(-1, 1) .. " FPS"
 
-	if Config.Ragebot and CurrentTarget then
+	if Config.Wallbang and CurrentTarget then
 		RageStatusLabel.Visible = true
 		RageStatusLabel.TextColor3 = rainbowColor
 		RageStatusLabel.Text = "targeting: " .. CurrentTarget.Name
@@ -1374,49 +1448,102 @@ Connections[#Connections+1] = RunService.RenderStepped:Connect(function(dt)
 	end
 end)
 
-Connections[#Connections+1] = RunService.RenderStepped:Connect(function(dt)
+task.spawn(function()
+	while true do
+		task.wait(0)
+		if Loaded and Config.VoidSpam then
+			local enemiesAlive = false
+			for _, plr in ipairs(Players:GetPlayers()) do
+				if CanTeleportTo(plr) then
+					local char, _, hum = GetChar(plr)
+					if char and hum and hum.Health > 0 then
+						if not HasProfileDisplay(char) then
+							enemiesAlive = true
+							break
+						end
+					end
+				end
+			end
+			
+			if not (Config.Wallbang and enemiesAlive) then
+				local _, hrp = GetChar()
+				if hrp then
+					pcall(function()
+						hrp.CFrame = CFrame.new(hrp.Position.X, -500, hrp.Position.Z)
+						hrp.AssemblyLinearVelocity = Vector3.new(0, -100000000000, 0)
+					end)
+					task.wait(0)
+					pcall(function()
+						local _, currentHrp = GetChar()
+						if currentHrp then
+							currentHrp.CFrame = CFrame.new(currentHrp.Position.X, 500, currentHrp.Position.Z)
+							currentHrp.AssemblyLinearVelocity = Vector3.new(0, 100000000000, 0)
+						end
+					end)
+				end
+			end
+		end
+	end
+end)
+
+RunService:BindToRenderStep("ApocalypseOmniWallbang", Enum.RenderPriority.First.Value + 999, function(dt)
 	if not Loaded then return end
 	local char, hrp, hum = GetChar()
 	if not char then
-		if Flying then
-			if FlyVel then FlyVel:Destroy() end
-			if FlyAtt then FlyAtt:Destroy() end
-			Flying = false
-		end
 		CurrentTarget = nil
 		return
 	end
 
-	if Config.Ragebot then
+	if Config.Wallbang then
+		local targetPosOverride = executeAggressiveWallbang()
 		local plr, part = GetBestTargetRage()
 		if plr and part then
 			local eChar, eHrp, eHum = GetChar(plr)
 			if eHrp and eHum and eHum.Health > 0 then
 				CurrentTarget = plr
 				
-				local targetPos = part.Position
+				local targetPos = targetPosOverride or part.Position
 				if Config.Prediction then
 					targetPos = targetPos + (eHrp.AssemblyLinearVelocity * Config.PredictionFactor)
 				end
 
-				local targetCF = CFrame.lookAt(Camera.CFrame.Position, targetPos)
-				Camera.CFrame = Camera.CFrame:Lerp(targetCF, 0.5)
+				if not Config.SilentAim then
+					local targetCF = CFrame.lookAt(Camera.CFrame.Position, targetPos)
+					Camera.CFrame = targetCF
+				end
 				
 				pcall(function()
 					LocalPlayer:SetMouseIconEnabled(true)
 				end)
 				
-				if Config.TeleportRage and hrp then
+				if Config.TeleportWallbang and hrp then
 					local enemyCFrame = eHrp.CFrame
-					local predictedPos = enemyCFrame.Position + (eHrp.AssemblyLinearVelocity * (Config.Prediction and Config.PredictionFactor or 0))
-					local offsetPos = predictedPos 
+					local enemyVel = eHrp.AssemblyLinearVelocity
+					local predictedPos = enemyCFrame.Position + (enemyVel * (Config.Prediction and Config.PredictionFactor or 0.15))
+					
+					local targetPosOffset = predictedPos 
 						- (enemyCFrame.LookVector * Config.TeleportOffsetZ) 
 						- (enemyCFrame.RightVector * Config.TeleportOffsetX) 
 						+ Vector3.new(0, Config.TeleportOffsetY, 0)
 					
-					hrp.CFrame = hrp.CFrame:Lerp(CFrame.new(offsetPos, predictedPos), 0.6)
-					hrp.AssemblyLinearVelocity = Vector3.zero
+					if Config.TeleportSmoothing >= 1.0 then
+						hrp.CFrame = CFrame.new(targetPosOffset, predictedPos)
+					else
+						local smoothFactor = math.clamp(dt * (Config.TeleportSmoothing * 350), 0.8, 1)
+						hrp.CFrame = hrp.CFrame:Lerp(CFrame.new(targetPosOffset, predictedPos), smoothFactor)
+					end
+					
+					hrp.AssemblyLinearVelocity = enemyVel + Vector3.new(0, 45, 0)
 					hrp.AssemblyAngularVelocity = Vector3.zero
+					
+					pcall(function()
+						for _, child in ipairs(char:GetDescendants()) do
+							if child:IsA("BasePart") then
+								child.CanCollide = false
+								child.AssemblyLinearVelocity = Vector3.zero
+							end
+						end
+					end)
 				end
 			end
 		else
@@ -1431,51 +1558,6 @@ Connections[#Connections+1] = RunService.Heartbeat:Connect(function()
 	if not Loaded then return end
 	local char, hrp, hum = GetChar()
 	if not char then return end
-
-	if Config.Fly then
-		if not Flying then
-			local att = Instance.new("Attachment")
-			att.Parent = hrp
-			local lv = Instance.new("LinearVelocity")
-			lv.Attachment0 = att
-			lv.MaxForce = 1e9
-			lv.RelativeTo = Enum.ActuatorRelativeTo.World
-			lv.Parent = hrp
-			FlyAtt, FlyVel = att, lv
-			Flying = true
-		end
-		if FlyVel then
-			local move = Vector3.zero
-			local cf = Camera.CFrame
-			if UserInputService:IsKeyDown(Enum.KeyCode.W) then move += cf.LookVector end
-			if UserInputService:IsKeyDown(Enum.KeyCode.S) then move -= cf.LookVector end
-			if UserInputService:IsKeyDown(Enum.KeyCode.A) then move -= cf.RightVector end
-			if UserInputService:IsKeyDown(Enum.KeyCode.D) then move += cf.RightVector end
-			if UserInputService:IsKeyDown(Enum.KeyCode.Space) then move += Vector3.yAxis end
-			if UserInputService:IsKeyDown(Enum.KeyCode.LeftControl) then move -= Vector3.yAxis end
-			local speed = Config.FlySpeed
-			FlyVel.VectorVelocity = move.Magnitude > 0 and move.Unit * speed or Vector3.zero
-		end
-	else
-		if Flying then
-			if FlyVel then FlyVel:Destroy() end
-			if FlyAtt then FlyAtt:Destroy() end
-			Flying = false
-		end
-	end
-
-	if Config.Speed then
-		hum.WalkSpeed = Config.SpeedValue
-	else
-		if hum.WalkSpeed ~= OriginalWalkSpeed then hum.WalkSpeed = OriginalWalkSpeed end
-	end
-
-	pcall(function()
-		if hum.UseJumpPower ~= nil then
-			hum.UseJumpPower = true
-			hum.JumpPower = Config.InfiniteJump and Config.JumpPower or OriginalJumpPower
-		end
-	end)
 
 	if Config.Noclip then
 		if not Noclipping then
@@ -1525,9 +1607,8 @@ end)
 UserInputService.InputBegan:Connect(function(input, gp)
 	if gp then return end
 	if input.KeyCode == Enum.KeyCode.R then
-		Config.Ragebot = not Config.Ragebot
-		Notify("Ragebot " .. (Config.Ragebot and "ON" or "OFF"))
-	elseif input.KeyCode == Enum.KeyCode.F then Config.Fly = not Config.Fly
+		Config.Wallbang = not Config.Wallbang
+		Notify("Wallbang " .. (Config.Wallbang and "ON" or "OFF"))
 	elseif input.KeyCode == Enum.KeyCode.V then Config.ESP = not Config.ESP
 	elseif input.KeyCode == Enum.KeyCode.N then Config.Noclip = not Config.Noclip
 	end
@@ -1535,18 +1616,6 @@ end)
 
 local function OnChar(char)
 	task.wait(0.05)
-	local hum = char:FindFirstChildOfClass("Humanoid")
-	if hum then
-		OriginalWalkSpeed = hum.WalkSpeed
-		pcall(function()
-			if hum.UseJumpPower ~= nil then OriginalJumpPower = hum.JumpPower end
-		end)
-	end
-	if Flying then
-		if FlyVel then FlyVel:Destroy() end
-		if FlyAtt then FlyAtt:Destroy() end
-		Flying = false
-	end
 	Noclipping = false
 	CurrentTarget = nil
 end
@@ -1574,6 +1643,6 @@ if autoloadName then
 	end)
 	Notify("Autoload cargado: " .. autoloadName, 2)
 else
-	Notify("Apocalypse.lol loaded successfully", 1.5)
+	Notify("Apocalypse.lol [ULTRA-GODMODE OMNI-WALLBANG] loaded successfully", 1.5)
 end
 
